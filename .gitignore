@@ -1,0 +1,14 @@
+.next/
+node_modules/
+out/
+dist/
+*.log
+.env
+.env*.local
+pnpm-debug.log*
+tsconfig.tsbuildinfo
+dev-server.*.log
+screenshots/
+.chrome-debug-profile*/
+.chrome-profile*/
+.brave-debug-profile*/
