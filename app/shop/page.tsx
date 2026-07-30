@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ShopProductCard } from "@/components/ShopProductCard";
+import { ShopBrowser } from "@/components/ShopBrowser";
 import { WindowFrame } from "@/components/WindowFrame";
 import { shopProducts } from "@/lib/site";
 
@@ -11,11 +11,7 @@ export default function ShopPage() {
   return (
     <div className="page-shell">
       <WindowFrame title="shop">
-        <div className="shop-grid">
-          {shopProducts.map((product) => (
-            <ShopProductCard key={product.id} product={product} />
-          ))}
-        </div>
+        <ShopBrowser products={shopProducts} />
       </WindowFrame>
     </div>
   );

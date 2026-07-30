@@ -24,6 +24,13 @@ html {
   background: var(--pine-950);
 }
 
+/* Reserve the scrollbar gutter on the standard page layout so a short page
+   (shop) and a long one (music) get the same content width, and their card
+   grids therefore compute identical column sizes. */
+html:has(.page-shell) {
+  scrollbar-gutter: stable;
+}
+
 body {
   min-width: 320px;
   margin: 0;
@@ -41,6 +48,29 @@ body {
   body:has(.home-layout) {
     height: 100%;
     overflow-y: hidden;
+  }
+}
+
+/* Biography fills exactly one screen: masthead + marquee keep their natural
+   height, main takes whatever is left. No hardcoded chrome height, so it
+   holds on any display. Falls back to normal scrolling on short viewports. */
+@media (min-width: 981px) and (min-height: 620px) {
+  html:has(.bio-shell) {
+    height: 100%;
+  }
+
+  body:has(.bio-shell) {
+    display: flex;
+    height: 100dvh;
+    flex-direction: column;
+    overflow-y: hidden;
+  }
+
+  body:has(.bio-shell) main {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    padding-bottom: 10px;
   }
 }
 
@@ -147,6 +177,10 @@ main {
   min-width: 0;
 }
 
+.masthead--no-rail .masthead-inner {
+  padding-bottom: 18px;
+}
+
 .masthead h1 {
   margin: 0;
   color: var(--paper);
@@ -198,7 +232,8 @@ main {
 .top-nav a,
 .command-button,
 .segmented-control button,
-.rotating-panel button {
+.rotating-panel button,
+.featured-carousel button {
   display: inline-flex;
   min-height: 36px;
   align-items: center;
@@ -306,7 +341,8 @@ main {
 .command-button:hover,
 .segmented-control button.active,
 .segmented-control button:hover,
-.rotating-panel button:hover {
+.rotating-panel button:hover,
+.featured-carousel button:hover {
   border-style: inset;
   color: var(--acid);
   transform: translateY(1px);
@@ -352,20 +388,18 @@ main {
   gap: 10px;
   margin: 0;
   padding: 0;
-  counter-reset: merch;
   list-style: none;
 }
 
 .merch-list li {
   min-width: 0;
   min-height: 0;
-  counter-increment: merch;
 }
 
 .merch-list a {
   display: grid;
-  grid-template-columns: 34px minmax(0, 1fr) auto;
-  gap: 9px;
+  grid-template-columns: 46px minmax(0, 1fr);
+  gap: 12px;
   align-items: center;
   min-height: 70px;
   height: 100%;
@@ -376,17 +410,12 @@ main {
   text-decoration: none;
 }
 
-.merch-list a::before {
-  content: counter(merch, decimal-leading-zero);
-  display: inline-flex;
-  width: 30px;
-  height: 30px;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid var(--line-bright);
+.merch-thumb {
+  width: 46px;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border: 2px ridge var(--line-bright);
   background: var(--pine-950);
-  color: var(--acid);
-  font-size: 0.72rem;
 }
 
 .merch-list a:hover {
@@ -396,19 +425,13 @@ main {
 
 .merch-copy {
   display: grid;
-  gap: 2px;
+  align-content: center;
   min-width: 0;
 }
 
-.merch-copy strong,
-.merch-copy small {
+.merch-copy strong {
+  line-height: 1.3;
   overflow-wrap: anywhere;
-}
-
-.merch-copy small {
-  color: var(--muted);
-  font-size: 0.76rem;
-  line-height: 1.35;
 }
 
 .page-grid > *,
@@ -436,8 +459,30 @@ main {
 }
 
 .bio-shell {
-  width: min(1120px, 100%);
+  width: min(1540px, 100%);
   margin-inline: auto;
+}
+
+@media (min-width: 981px) and (min-height: 620px) {
+  .bio-shell {
+    flex: 1;
+    min-height: 0;
+  }
+
+  .bio-shell > .window-frame {
+    height: 100%;
+  }
+
+  .bio-shell .window-body {
+    display: grid;
+    min-height: 0;
+  }
+
+  /* Portrait grows with the taller frame but can never outgrow it:
+     100dvh minus masthead, marquee and window chrome. */
+  .bio-shell .bio-portrait img {
+    width: min(460px, 100%, calc(100dvh - 410px));
+  }
 }
 
 .center-stack,
@@ -604,9 +649,7 @@ main {
   gap: 8px;
 }
 
-.social-grid a,
-.tools-list a,
-.friends-list a {
+.social-grid a {
   display: flex;
   min-width: 0;
   align-items: center;
@@ -618,9 +661,7 @@ main {
   text-decoration: none;
 }
 
-.social-grid a:hover,
-.tools-list a:hover,
-.friends-list a:hover {
+.social-grid a:hover {
   color: var(--acid);
   border-style: inset;
 }
@@ -681,9 +722,27 @@ main {
   background: var(--acid);
 }
 
+/* Desktop lays every cover out at once, so the pager arrows stay hidden and the
+   viewport is a transparent pass-through. Both wake up in the mobile block. */
+.featured-carousel {
+  display: grid;
+  height: 100%;
+  min-height: 0;
+}
+
+.featured-carousel > button {
+  display: none;
+}
+
+.featured-viewport {
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+}
+
 .featured-strip {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--count, 4), minmax(0, 1fr));
   height: 100%;
   gap: clamp(10px, 1.4vw, 24px);
   align-items: center;
@@ -705,6 +764,18 @@ main {
   border: 4px ridge var(--line);
   color: var(--paper);
   text-decoration: none;
+  transition: transform 0.08s ease;
+}
+
+/* Same press-in hover as the release and shop cards. */
+.featured-strip a:hover {
+  border-style: inset;
+  color: var(--acid);
+  transform: translateY(1px);
+}
+
+.featured-strip a:hover span {
+  color: var(--acid);
 }
 
 .featured-strip img {
@@ -728,62 +799,163 @@ main {
   text-shadow: 1px 1px 0 var(--pine-950);
 }
 
-.tools-list,
-.friends-list {
+/* Four explicit slots (one per friend), so a panel with a single row (tools)
+   gets the same row height as the four-row friends panel beside it instead of
+   stretching its one row over the whole body. Each slot is the smaller of a
+   comfortable bar height and its share of the panel body, so four rows always
+   fit without the last one being clipped, and rows start at the top. */
+.card-rows {
+  --card-row-gap: 8px;
+  --card-row-slots: 4;
+  --card-row-height: clamp(40px, 7vh, 60px);
+  /* An explicit length, never derived from the image's natural size. */
+  --card-thumb: clamp(24px, 3.2vh, 34px);
   display: grid;
-  grid-auto-rows: minmax(0, 1fr);
-  align-content: stretch;
-  gap: 8px;
+  grid-template-rows: repeat(
+    var(--card-row-slots),
+    minmax(
+      0,
+      min(
+        var(--card-row-height),
+        calc((100% - (var(--card-row-slots) - 1) * var(--card-row-gap)) / var(--card-row-slots))
+      )
+    )
+  );
+  align-content: start;
+  gap: var(--card-row-gap);
   height: 100%;
-}
-
-.tools-list a,
-.friends-list a {
   min-height: 0;
 }
 
-.tools-list img {
-  width: clamp(44px, 22%, 64px);
-  aspect-ratio: 1;
-  object-fit: contain;
-  border: 3px ridge var(--line-bright);
-  background: var(--pine-950);
-  padding: 4px;
-}
-
-.friends-list img {
-  width: clamp(44px, 22%, 64px);
-  aspect-ratio: 1;
-  object-fit: cover;
-  border: 3px ridge var(--line-bright);
-  background: var(--pine-950);
-}
-
-.tool-copy,
-.friend-copy {
+/* Rows fill their slot exactly instead of overflowing a capped height. The
+   thumbnail column is a fixed length — an `auto` column would be sized from
+   the image's intrinsic width, which blows the label out of the row. */
+.card-row {
   display: grid;
-  gap: 3px;
+  grid-template-columns: var(--card-thumb) minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  align-self: stretch;
   min-width: 0;
-  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  border: 3px outset var(--line);
+  background: rgba(228, 231, 210, 0.08);
+  padding: 5px 9px;
+  color: var(--paper);
+  text-decoration: none;
 }
 
-.tool-copy strong,
-.friend-copy strong {
+.card-row strong {
+  overflow: hidden;
   overflow-wrap: anywhere;
-  font-size: 0.98rem;
+  font-size: clamp(0.8rem, 1.7vh, 0.95rem);
+  line-height: 1.15;
 }
 
-.tool-copy small,
-.friend-copy small {
-  color: var(--muted);
-  font-size: 0.78rem;
-  line-height: 1.35;
-  overflow-wrap: anywhere;
+/* A fixed square, centered in its column, showing the whole image (contain)
+   so portraits are never cropped. max-height is the only relative value: it
+   shrinks the square if a row slot is shorter than the square, so the frame
+   can never overflow the row and get clipped. */
+.card-row-thumb {
+  width: var(--card-thumb);
+  height: var(--card-thumb);
+  max-height: 100%;
+  place-self: center;
+  object-fit: contain;
+  object-position: center;
+  border: 2px ridge var(--line-bright);
+  background: var(--pine-950);
 }
 
-.release-browser {
+.card-row-thumb.is-empty {
+  display: block;
+  background:
+    repeating-linear-gradient(
+      135deg,
+      rgba(228, 231, 210, 0.09) 0 4px,
+      transparent 4px 8px
+    ),
+    var(--pine-950);
+}
+
+a.card-row:hover {
+  border-style: inset;
+  color: var(--acid);
+}
+
+.release-browser,
+.shop-browser {
   display: grid;
   gap: 16px;
+}
+
+.shop-toolbar {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.shop-filter {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.shop-filter select {
+  min-height: 36px;
+  min-width: 168px;
+  appearance: none;
+  padding: 8px 34px 8px 14px;
+  border: 4px outset var(--line-bright);
+  border-radius: 6px;
+  background:
+    linear-gradient(180deg, rgba(228, 231, 210, 0.18), rgba(6, 19, 15, 0.9)),
+    var(--pine-700);
+  color: var(--paper);
+  cursor: pointer;
+  font: inherit;
+  text-transform: lowercase;
+  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.35);
+}
+
+.shop-filter select:hover,
+.shop-filter select:focus-visible {
+  border-style: inset;
+  color: var(--acid);
+}
+
+.shop-filter select option {
+  background: var(--pine-900);
+  color: var(--paper);
+}
+
+.shop-filter svg {
+  position: absolute;
+  right: 12px;
+  color: var(--acid);
+  pointer-events: none;
+}
+
+.browser-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.browser-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+
+.browser-count {
+  color: var(--muted);
+  font-size: 0.82rem;
+  white-space: nowrap;
 }
 
 .segmented-control {
@@ -802,6 +974,20 @@ main {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
   gap: 14px;
+}
+
+/* auto-fill, not auto-fit: the shop has only a handful of items, and auto-fit
+   would collapse the empty tracks and stretch them. This keeps shop cards the
+   same width as the music-page release cards. */
+.shop-grid {
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  justify-content: start;
+}
+
+/* auto-fill, not auto-fit: a narrow filter result (three singles) keeps
+   normal card size instead of stretching across the whole row. */
+.release-grid {
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
 }
 
 .release-card,
@@ -828,6 +1014,14 @@ main {
   display: grid;
   gap: 10px;
   padding: 12px;
+}
+
+/* Matches the release-card body height on the music page, which carries one
+   extra meta row of text, so both grids render identically sized cards. */
+.shop-card-body {
+  min-height: 137px;
+  align-content: space-between;
+  text-align: left;
 }
 
 .release-meta {
@@ -864,20 +1058,39 @@ main {
   line-height: 1.5;
 }
 
-.release-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-}
-
-.release-actions a,
-.release-actions span {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+a.release-card,
+a.shop-card,
+button.shop-card {
+  display: block;
   color: var(--paper);
   text-decoration: none;
+  transition: transform 0.08s ease;
+}
+
+button.shop-card {
+  width: 100%;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+a.release-card:hover,
+a.shop-card:hover,
+button.shop-card:hover {
+  border-style: inset;
+  color: var(--acid);
+  transform: translateY(1px);
+}
+
+a.release-card:hover h2,
+a.shop-card:hover h2,
+button.shop-card:hover h2 {
+  color: var(--acid);
+}
+
+button.shop-card:disabled {
+  cursor: progress;
+  opacity: 0.7;
 }
 
 .shop-card strong {
@@ -988,9 +1201,10 @@ main {
 
 .bio-page {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(190px, 0.82fr) minmax(0, 1fr);
-  gap: 14px;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 0.72fr) minmax(0, 1fr);
+  gap: 20px;
   align-items: stretch;
+  min-height: 0;
 }
 
 .bio-panel {
@@ -1002,7 +1216,7 @@ main {
   background:
     linear-gradient(135deg, rgba(200, 227, 111, 0.1), transparent 46%),
     rgba(6, 19, 15, 0.72);
-  padding: 18px;
+  padding: clamp(16px, 1.5vw, 24px) clamp(18px, 1.8vw, 30px);
 }
 
 .bio-panel-faketo {
@@ -1022,6 +1236,7 @@ main {
 
 .bio-panel p {
   margin: 0;
+  max-width: 58ch;
   color: var(--paper);
   line-height: 1.65;
   overflow-wrap: anywhere;
@@ -1032,11 +1247,12 @@ main {
   align-content: center;
   justify-items: center;
   min-width: 0;
+  min-height: 0;
   margin: 0;
 }
 
 .bio-portrait img {
-  width: min(280px, 100%);
+  width: min(360px, 100%);
   aspect-ratio: 1;
   object-fit: cover;
   border: 6px ridge var(--line);
@@ -1109,25 +1325,17 @@ main {
     width: min(100%, clamp(148px, 20dvh, 188px));
   }
 
-  .tools-list,
-  .friends-list {
-    gap: 6px;
+  .card-rows {
+    --card-row-gap: 6px;
   }
 
-  .tools-list a,
-  .friends-list a {
+  .card-row {
     border-width: 2px;
-    padding: 5px 8px;
+    padding: 4px 8px;
   }
 
-  .tool-copy strong,
-  .friend-copy strong {
-    font-size: 0.9rem;
-  }
-
-  .tool-copy small,
-  .friend-copy small {
-    font-size: 0.72rem;
+  .card-row strong {
+    font-size: clamp(0.76rem, 1.6vh, 0.86rem);
   }
 }
 
@@ -1136,25 +1344,56 @@ main {
     grid-template-columns: 1fr;
   }
 
-  .social-corner,
-  .right-stack {
-    order: 2;
-  }
-
+  /* intro + featured audio, then merch, then tools + friends */
   .center-stack {
     order: 1;
   }
 
-  .social-logo-track {
-    grid-template-columns: 1fr;
-    gap: 8px;
+  .merch-stack {
+    order: 2;
   }
 
-  .social-logo-group,
-  .social-logo-group.is-left,
-  .social-logo-group.is-center,
-  .social-logo-group.is-right {
-    justify-content: center;
+  .social-corner,
+  .right-stack {
+    order: 3;
+  }
+
+  /* release the desktop viewport-locked height so panels size to content */
+  .home-layout {
+    height: auto;
+  }
+
+  .home-main-stack,
+  .home-layout .right-stack {
+    grid-template-rows: none;
+  }
+
+  .home-main-stack > .window-frame,
+  .home-main-stack > .intro-window,
+  .home-layout .right-stack > .window-frame,
+  .merch-stack .window-frame,
+  .merch-stack .merch-list,
+  .chip-row {
+    height: auto;
+  }
+
+  .merch-list {
+    grid-template-rows: none;
+  }
+
+  /* Stacked panels have no definite height, so the desktop slot sizing
+     (a share of 100%) has nothing to resolve against. Use plain auto rows at
+     the bar height instead, which stays definite for the thumbnail. */
+  .card-rows {
+    grid-template-rows: none;
+    grid-auto-rows: var(--card-row-height);
+    height: auto;
+  }
+
+  .social-logo-track {
+    grid-template-columns: auto auto auto;
+    justify-content: space-between;
+    gap: clamp(6px, 2vw, 28px);
   }
 
   .social-grid {
@@ -1172,13 +1411,24 @@ main {
     margin-top: 12px;
   }
 
-  .masthead {
-    min-height: 390px;
+  /* collapse to just the title + nav buttons, plus room for the identity rail */
+  .masthead,
+  .masthead-inner {
+    min-height: 152px;
   }
 
   .masthead-inner {
-    min-height: 390px;
-    padding: 38px 10px 84px;
+    gap: 12px;
+    padding: 16px 10px 54px;
+  }
+
+  .masthead--no-rail,
+  .masthead--no-rail .masthead-inner {
+    min-height: 118px;
+  }
+
+  .masthead--no-rail .masthead-inner {
+    padding-bottom: 16px;
   }
 
   .masthead h1 {
@@ -1200,26 +1450,54 @@ main {
   }
 
   .top-nav {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    width: min(340px, calc(100vw - 24px));
-    max-width: calc(100vw - 24px);
-    gap: 8px;
-  }
-
-  .top-nav a:nth-child(5) {
-    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: nowrap;
+    width: 100%;
+    max-width: 100%;
+    gap: clamp(3px, 1vw, 10px);
   }
 
   .top-nav a {
-    width: 100%;
+    flex: 1 1 0;
+    width: auto;
     min-width: 0;
-    padding-inline: 8px;
+    min-height: 32px;
+    border-width: 3px;
+    padding: 6px 1px;
+    font-size: clamp(0.52rem, 2.3vw, 0.9rem);
+    letter-spacing: -0.02em;
+    white-space: nowrap;
   }
 
   .social-logo-shell {
-    width: min(360px, calc(100vw - 16px));
+    width: min(100% - 16px, 1540px);
     max-width: calc(100vw - 16px);
+    border-width: 3px;
+  }
+
+  .social-logo-track {
+    gap: clamp(4px, 1.6vw, 12px);
+    padding: 4px 6px;
+  }
+
+  .social-logo-group,
+  .social-logo-group.is-left,
+  .social-logo-group.is-center,
+  .social-logo-group.is-right {
+    flex-wrap: nowrap;
+    gap: clamp(3px, 1vw, 8px);
+  }
+
+  .social-logo-group a {
+    width: clamp(22px, 7vw, 34px);
+    height: clamp(20px, 6vw, 28px);
+    border-width: 2px;
+    border-radius: 5px;
+  }
+
+  .social-logo-group img {
+    width: clamp(12px, 4vw, 18px);
+    height: clamp(12px, 4vw, 18px);
   }
 
   .window-body {
@@ -1238,34 +1516,57 @@ main {
     width: min(240px, 100%);
   }
 
+  /* keep the arrows flanking the copy like desktop, just narrower */
   .rotating-panel {
-    grid-template-columns: 1fr;
+    grid-template-columns: 32px minmax(0, 1fr) 32px;
     gap: 8px;
   }
 
-  .rotating-panel article {
-    order: 1;
-  }
-
-  .rotating-panel button:first-child {
-    order: 2;
-  }
-
-  .rotating-panel button:last-child {
-    order: 3;
-  }
-
   .rotating-panel button {
-    width: 100%;
+    width: auto;
+    min-width: 0;
+    padding: 0;
   }
 
   .rotating-panel article {
-    min-height: 260px;
-    padding: 16px;
+    min-height: 220px;
+    padding: 12px;
+  }
+
+  .rotating-panel p {
+    font-size: 0.9rem;
+  }
+
+  /* Two covers per page, arrows flanking them like the intro panel. The track
+     holds every cover at --pages x the viewport width and slides one full
+     viewport per page. Gap is 0 so that shift stays exact; the covers get their
+     breathing room from their own width instead. */
+  .featured-carousel {
+    grid-template-columns: 32px minmax(0, 1fr) 32px;
+    gap: 8px;
+  }
+
+  .featured-carousel > button {
+    display: inline-flex;
+    width: auto;
+    min-width: 0;
+    padding: 0;
+  }
+
+  .featured-viewport {
+    overflow: hidden;
   }
 
   .featured-strip {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: calc(var(--pages, 1) * 100%);
+    gap: 0;
+    transform: translateX(calc(var(--page, 0) * -100% / var(--pages, 1)));
+    transition: transform 0.25s ease;
+  }
+
+  .featured-strip a {
+    width: calc(100% - 8px);
+    max-height: none;
   }
 
   .social-grid {

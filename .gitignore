@@ -12,3 +12,4 @@ screenshots/
 .chrome-debug-profile*/
 .chrome-profile*/
 .brave-debug-profile*/
+.vercel/

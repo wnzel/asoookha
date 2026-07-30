@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { ExternalLink } from "lucide-react";
+import { FeaturedStrip } from "@/components/FeaturedStrip";
 import { RotatingPanel } from "@/components/RotatingPanel";
 import { WindowFrame } from "@/components/WindowFrame";
-import { featuredReleases, friends, merchHighlights, tools } from "@/lib/site";
+import { friends, merchHighlights, tools } from "@/lib/site";
 
 export default function HomePage() {
   return (
@@ -12,10 +12,12 @@ export default function HomePage() {
           <ol className="merch-list">
             {merchHighlights.map((item) => {
               const copy = (
-                <span className="merch-copy">
-                  <strong>{item.title}</strong>
-                  <small>{item.description}</small>
-                </span>
+                <>
+                  <img alt={`${item.title} artwork`} className="merch-thumb" src={item.image} />
+                  <span className="merch-copy">
+                    <strong>{item.title}</strong>
+                  </span>
+                </>
               );
 
               return (
@@ -25,7 +27,6 @@ export default function HomePage() {
                   ) : (
                     <a href={item.href} rel="noreferrer" target="_blank">
                       {copy}
-                      <ExternalLink aria-hidden="true" size={15} />
                     </a>
                   )}
                 </li>
@@ -37,45 +38,51 @@ export default function HomePage() {
 
       <div className="center-stack home-main-stack">
         <RotatingPanel />
-        <WindowFrame title="featured audio" actionHref="/music">
-          <div className="featured-strip">
-            {featuredReleases.map((release) => (
-              <a href={release.spotifyUrl} key={release.spotifyAlbumId} rel="noreferrer" target="_blank">
-                <img alt={`${release.title} cover`} src={release.coverArt} />
-                <span>{release.title}</span>
-              </a>
-            ))}
-          </div>
-        </WindowFrame>
+        <FeaturedStrip />
       </div>
 
       <aside className="right-stack">
         <WindowFrame title="tools">
-          <div className="tools-list">
+          <div className="card-rows">
             {tools.map((tool) => (
-              <a href={tool.href} key={tool.name} rel="noreferrer" target="_blank">
-                <img alt={`${tool.name} logo`} src={tool.logo} />
-                <span className="tool-copy">
-                  <strong>{tool.name}</strong>
-                  <small>{tool.role}</small>
-                </span>
-              </a>
+              <div className="card-row" key={tool.name}>
+                <img alt="" aria-hidden="true" className="card-row-thumb" src={tool.logo} />
+                <strong>{tool.name}</strong>
+              </div>
             ))}
           </div>
         </WindowFrame>
 
         <WindowFrame title="friends">
-          <div className="friends-list">
-            {friends.map((friend) => (
-              <a href={friend.href} key={friend.name} rel="noreferrer" target="_blank">
-                <img alt={`${friend.name} portrait`} src={friend.image} />
-                <span className="friend-copy">
+          <div className="card-rows">
+            {friends.map((friend) => {
+              const inner = (
+                <>
+                  {friend.image ? (
+                    <img alt="" aria-hidden="true" className="card-row-thumb" src={friend.image} />
+                  ) : (
+                    <span aria-hidden="true" className="card-row-thumb is-empty" />
+                  )}
                   <strong>{friend.name}</strong>
-                  <small>{friend.blurb}</small>
-                </span>
-                <ExternalLink aria-hidden="true" size={15} />
-              </a>
-            ))}
+                </>
+              );
+
+              return friend.href ? (
+                <a
+                  className="card-row"
+                  href={friend.href}
+                  key={friend.name}
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  {inner}
+                </a>
+              ) : (
+                <div className="card-row" key={friend.name}>
+                  {inner}
+                </div>
+              );
+            })}
           </div>
         </WindowFrame>
       </aside>

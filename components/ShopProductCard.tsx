@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ExternalLink, Loader2, ShoppingBag } from "lucide-react";
-import type { ShopProduct } from "@/lib/site";
+import { formatPrice, type ShopProduct } from "@/lib/site";
 
 type ShopProductCardProps = {
   product: ShopProduct;
@@ -43,43 +42,37 @@ export function ShopProductCard({ product }: ShopProductCardProps) {
     }
   }
 
-  return (
-    <article className="shop-card">
+  const body = (
+    <>
       <img alt={`${product.title} artwork`} src={product.image} />
       <div className="shop-card-body">
-        <div className="release-meta">
-          <span>{product.badge}</span>
-          <span>{product.subtitle}</span>
-        </div>
         <h2>{product.title}</h2>
-        <p>{product.description}</p>
-        {product.price ? <strong>${product.price.value}</strong> : null}
-        {product.checkout === "external" && product.href ? (
-          <a className="command-button" href={product.href} rel="noreferrer" target="_blank">
-            <ExternalLink aria-hidden="true" size={17} />
-            Open
-          </a>
-        ) : (
-          <button
-            className="command-button"
-            disabled={status === "loading"}
-            onClick={startCheckout}
-            type="button"
-          >
-            {status === "loading" ? (
-              <Loader2 aria-hidden="true" className="spin" size={17} />
-            ) : (
-              <ShoppingBag aria-hidden="true" size={17} />
-            )}
-            PayPal
-          </button>
-        )}
+        {product.price ? <strong>{formatPrice(product.price.value)}</strong> : null}
         {status === "error" ? (
           <span className="inline-error">
             PayPal is not configured yet. Add env vars, then retry in sandbox.
           </span>
         ) : null}
       </div>
-    </article>
+    </>
+  );
+
+  if (product.checkout === "external" && product.href) {
+    return (
+      <a className="shop-card" href={product.href} rel="noreferrer" target="_blank">
+        {body}
+      </a>
+    );
+  }
+
+  return (
+    <button
+      className="shop-card"
+      disabled={status === "loading"}
+      onClick={startCheckout}
+      type="button"
+    >
+      {body}
+    </button>
   );
 }
